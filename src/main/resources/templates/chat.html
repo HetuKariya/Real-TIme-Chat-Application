@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Real-Time Chat Application</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+</head>
+<body>
+<div class="container mt-4">
+    <h1 class="text-center">Real-Time Chat Application</h1>
+</div>
+
+<div id="chat" class="border rounded p-3 mb-3" style="height: 300px; overflow-y: auto;"></div>
+
+<div class="input-group mb-3">
+    <input id="senderInput" type="text" class="form-control" placeholder="Your Name..."/>
+</div>
+
+<div class="input-group mb-3">
+    <input id="messageInput" type="text" class="form-control" placeholder="Type a Message..."/>
+    <div id="input-group-append">
+        <button id="sendMessage" class="btn btn-primary" disabled>Send</button>
+    </div>
+</div>
+
+<script>
+    // global stomp client
+    var stompClient = null;
+
+    function setConnected(connected) {
+        document.getElementById('sendMessage').disabled = !connected;
+    }
+
+    function connect() {
+        // connect to the WS endpoint (note: endpoint is /ws in the server config)
+        var socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, function(frame) {
+            setConnected(true);
+            // subscribe to messages from the broker
+            stompClient.subscribe('/topic/messages', function(message) {
+                showMessage(JSON.parse(message.body));
+            });
+        }, function(error) {
+            console.error('STOMP connect error:', error);
+            setConnected(false);
+        });
+    }
+
+    function showMessage(message) {
+        var chat = document.getElementById('chat');
+        var messageElement = document.createElement('div');
+        // fix concatenation and class usage
+        messageElement.textContent = message.sender + ': ' + message.content;
+        messageElement.className = "border-bottom mb-1";
+        chat.appendChild(messageElement);
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    function sendMessage() {
+        if (!stompClient) return;
+        var sender = document.getElementById('senderInput').value || 'Anonymous';
+        var content = document.getElementById('messageInput').value.trim();
+        if (!content) return; // don't send empty messages
+        var chatMessage = { sender: sender, content: content };
+        stompClient.send("/app/sendMessage", {}, JSON.stringify(chatMessage));
+        document.getElementById('messageInput').value = '';
+    }
+
+    document.getElementById('sendMessage').onclick = sendMessage;
+
+    // allow Enter key to send the message
+    document.getElementById('messageInput').addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    // connect when the page loads
+    window.addEventListener('load', connect);
+</script>
+</body>
+</html>

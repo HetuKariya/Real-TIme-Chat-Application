@@ -1,10 +1,12 @@
 package com.chat.app.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserEntity {
 
     @Id
@@ -21,9 +23,7 @@ public class UserEntity {
     private LocalDateTime createdAt;
 
     @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
+    protected void onCreate() { this.createdAt = LocalDateTime.now(); }
 
     public UserEntity() {}
 
@@ -32,8 +32,8 @@ public class UserEntity {
         this.password = password;
     }
 
-    public Long getId()           { return id; }
-    public String getUsername()   { return username; }
-    public String getPassword()   { return password; }
+    public Long getId()             { return id; }
+    public String getUsername()     { return username; }
+    public String getPassword()     { return password; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 }

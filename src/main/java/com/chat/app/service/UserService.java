@@ -3,8 +3,6 @@ package com.chat.app.service;
 import com.chat.app.entity.UserEntity;
 import com.chat.app.model.User;
 import com.chat.app.repository.UserRepository;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -33,13 +31,9 @@ public class UserService implements UserDetailsService {
     }
 
     @Override
-    @Cacheable(value = "users", key = "#username")
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserEntity entity = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         return new User(entity);
     }
-
-    @CacheEvict(value = "users", key = "#username")
-    public void evictUserCache(String username) {}
 }

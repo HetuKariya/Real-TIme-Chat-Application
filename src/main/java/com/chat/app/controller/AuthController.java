@@ -1,5 +1,6 @@
 package com.chat.app.controller;
 
+import com.chat.app.entity.UserEntity;
 import com.chat.app.model.AuthRequest;
 import com.chat.app.model.AuthResponse;
 import com.chat.app.service.JwtService;
@@ -7,10 +8,7 @@ import com.chat.app.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -29,9 +27,9 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody AuthRequest req) {
-        userService.register(req.getUsername(), req.getPassword());
-        String token = jwtService.generateToken(req.getUsername());
-        return ResponseEntity.ok(new AuthResponse(token, req.getUsername()));
+        UserEntity entity = userService.register(req.getUsername(), req.getPassword());
+        String token = jwtService.generateToken(entity.getUsername());
+        return ResponseEntity.ok(new AuthResponse(token, entity.getUsername()));
     }
 
     @PostMapping("/login")
